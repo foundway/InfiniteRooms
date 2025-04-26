@@ -2,6 +2,8 @@
 
 A procedural room generator using Binary Space Partitioning (BSP) algorithm to create connected rooms and hallways.
 
+[DEMO](https://foundway.github.io/InfiniteRooms/)
+
 ## Features
 
 - Generates random room layouts using BSP
