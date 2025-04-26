@@ -20,11 +20,10 @@ interface Config {
     MIN_SIZE: number;
     MAX_SIZE: number;
     QUIT_RATE: number;
-    SINGLE_DOOR_PROB: number;
     HALLWAY_DOOR_PROB: number;
 }
 
-class BspMazeGenerator {
+class RoomGenerator {
     private config: Config;
     private tree: Tree | null = null;
     private grid: string[][] = [];
@@ -38,8 +37,7 @@ class BspMazeGenerator {
             MIN_SIZE: config.MIN_SIZE || 6,
             MAX_SIZE: config.MAX_SIZE || 20,
             QUIT_RATE: config.QUIT_RATE || 0.1,
-            SINGLE_DOOR_PROB: config.SINGLE_DOOR_PROB || 2,
-            HALLWAY_DOOR_PROB: config.HALLWAY_DOOR_PROB || 1
+            HALLWAY_DOOR_PROB: config.HALLWAY_DOOR_PROB || 0.3
         };
     }
 
@@ -50,7 +48,7 @@ class BspMazeGenerator {
         
         this.tree = new Tree(this.config, 1, 1, this.config.MAP_WIDTH - 1, this.config.MAP_HEIGHT - 1);
         this.grid = Array(this.config.MAP_WIDTH).fill(null).map(() => 
-            Array(this.config.MAP_HEIGHT).fill('#')
+            Array(this.config.MAP_HEIGHT).fill('# ')
         );
         this.tree.buildRooms(this.grid);
 
@@ -88,7 +86,7 @@ class Tree {
             const { x, y, width, height } = room.rect;
             for (let i = 0; i < width; i++) {
                 for (let j = 0; j < height; j++) {
-                    grid[x + i][y + j] = '.';
+                    grid[x + i][y + j] = '. ';
                 }
             }
         }
@@ -99,7 +97,7 @@ class Tree {
                 const { x, y, width, height } = door.rect;
                 for (let i = 0; i < width; i++) {
                     for (let j = 0; j < height; j++) {
-                        grid[x + i][y + j] = 'o';
+                        grid[x + i][y + j] = 'o ';
                     }
                 }
             }
@@ -209,10 +207,10 @@ class Leaf {
         const isVertical = sharedWall.width < sharedWall.height;
         const wallWidth = isVertical ? sharedWall.height : sharedWall.width;
         
-        // Determine door width - either single door or hallway
-        const doorWidth = Math.random() * (config.SINGLE_DOOR_PROB + config.HALLWAY_DOOR_PROB) < config.SINGLE_DOOR_PROB 
-            ? 1 
-            : (wallWidth >= 3 ? Math.floor(Math.random() * (wallWidth - 2)) + 3 : wallWidth);
+        // Use hallway probability to determine door type
+        const doorWidth = Math.random() < config.HALLWAY_DOOR_PROB && wallWidth >= 2
+            ? Math.floor(Math.random() * (wallWidth - 2)) + 2 
+            : 1;
             
         const margin = wallWidth - doorWidth;
         if (margin < 0) return;
@@ -255,4 +253,4 @@ class Leaf {
     }
 }
 
-export default BspMazeGenerator; 
+export default RoomGenerator; 
