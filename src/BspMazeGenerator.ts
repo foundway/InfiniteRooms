@@ -21,7 +21,6 @@ interface Config {
     MAX_SIZE: number;
     QUIT_RATE: number;
     SINGLE_DOOR_PROB: number;
-    DOUBLE_DOOR_PROB: number;
     HALLWAY_DOOR_PROB: number;
 }
 
@@ -40,7 +39,6 @@ class BspMazeGenerator {
             MAX_SIZE: config.MAX_SIZE || 20,
             QUIT_RATE: config.QUIT_RATE || 0.1,
             SINGLE_DOOR_PROB: config.SINGLE_DOOR_PROB || 2,
-            DOUBLE_DOOR_PROB: config.DOUBLE_DOOR_PROB || 2,
             HALLWAY_DOOR_PROB: config.HALLWAY_DOOR_PROB || 1
         };
     }
@@ -210,9 +208,13 @@ class Leaf {
 
         const isVertical = sharedWall.width < sharedWall.height;
         const wallWidth = isVertical ? sharedWall.height : sharedWall.width;
-        const doorWidth = this.getDoorWidth(config, wallWidth);
+        
+        // Determine door width - either single door or hallway
+        const doorWidth = Math.random() * (config.SINGLE_DOOR_PROB + config.HALLWAY_DOOR_PROB) < config.SINGLE_DOOR_PROB 
+            ? 1 
+            : (wallWidth >= 3 ? Math.floor(Math.random() * (wallWidth - 2)) + 3 : wallWidth);
+            
         const margin = wallWidth - doorWidth;
-
         if (margin < 0) return;
 
         const door: Room = {
@@ -250,13 +252,6 @@ class Leaf {
 
         if (shared.width !== 1 && shared.height !== 1) return null;
         return shared;
-    }
-
-    private getDoorWidth(config: Config, max: number): number {
-        const x = Math.floor(Math.random() * (config.SINGLE_DOOR_PROB + config.DOUBLE_DOOR_PROB + config.HALLWAY_DOOR_PROB));
-        if (x < config.SINGLE_DOOR_PROB) return 1;
-        if (x < config.SINGLE_DOOR_PROB + config.DOUBLE_DOOR_PROB) return Math.min(2, max);
-        return max >= 3 ? Math.floor(Math.random() * (max - 2)) + 3 : max;
     }
 }
 
